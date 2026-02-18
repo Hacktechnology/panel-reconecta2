@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconecta2 - Master Panel</title>
+    <style>
+        :root { 
+            --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
+            --primary: #007bff; --success: #2ecc71; --warning: #f1c40f; 
+            --danger: #e74c3c; --near: #e67e22; --info: #3498db;
+            --reconecta-blue: #00d2ff;
+        }
+        
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 80px; overflow-x: hidden; }
+        
+        /* LOGIN SCREEN */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 2000; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+        }
+
+        .brand-container { text-align: center; padding: 20px 0; }
+        .brand-name { 
+            font-size: 34px; font-weight: 900; color: var(--reconecta-blue);
+            text-shadow: 2px 2px 10px rgba(0, 210, 255, 0.6);
+            letter-spacing: 2px; font-style: italic; text-transform: uppercase;
+        }
+
+        /* Nav Inferior */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: none; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); z-index: 1000; border-top: 1px solid #333; }
+        .nav-item { flex: 1; text-align: center; padding: 15px 0; font-size: 12px; font-weight: bold; color: #777; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .nav-item.active { color: var(--reconecta-blue); border-top: 3px solid var(--reconecta-blue); background: rgba(0,210,255,0.05); }
+
+        /* Contenedores */
+        .view { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--card); padding: 20px; border-radius: 18px; border: 1px solid #333; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .resumen-container { display: flex; gap: 10px; margin-bottom: 15px; }
+        .resumen-box { flex: 1; padding: 15px; border-radius: 14px; color: white; text-align: center; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); }
+        
+        input, select { 
+            width: 100%; padding: 15px; border: 1px solid #333; border-radius: 12px; 
+            background: #252525; color: white; margin-bottom: 15px; box-sizing: border-box; font-size: 15px;
+        }
+        input:focus { outline: none; border-color: var(--reconecta-blue); background: #2a2a2a; }
+        
+        .btn-enviar, .btn-login { width: 100%; background: var(--reconecta-blue); color: #000; border: none; padding: 18px; border-radius: 12px; font-size: 16px; font-weight: 900; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3); }
+        
+        /* Tabla con Semáforo */
+        .table-container { border-radius: 15px; overflow: hidden; border: 1px solid #333; background: var(--card); }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { background: #252525; color: #888; font-size: 11px; padding: 15px; text-align: left; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #2a2a2a; font-size: 13px; vertical-align: middle; }
+        
+        .status-dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .badge-status { font-size: 10px; padding: 3px 8px; border-radius: 6px; background: #333; color: #bbb; display: block; width: fit-content; margin-top: 4px; }
+        
+        .btn-ws { background: #25D366; color: white; padding: 10px; border-radius: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; font-size: 20px; box-shadow: 0 4px 10px rgba(37,211,102,0.2); }
+        .btn-ren { background: var(--reconecta-blue); color: #000; border-radius: 10px; width: 42px; height: 42px; border:none; cursor: pointer; font-size: 18px; font-weight: bold; }
+        .btn-del { background: rgba(231, 76, 60, 0.1); color: var(--danger); border: 1px solid var(--danger); border-radius: 10px; width: 42px; height: 42px; cursor: pointer; transition: 0.2s; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="brand-container">
+            <div class="brand-name">RECONECTA2</div>
+            <p style="color:#666; font-size:12px; margin-top:10px;">ACCESO RESTRINGIDO</p>
+        </div>
+        <div class="card" style="width:100%; max-width:350px;">
+            <input type="text" id="user" placeholder="Usuario">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button class="btn-login" onclick="validarAcceso()">Entrar</button>
+            <p id="error-login" style="color:var(--danger); font-size:12px; text-align:center; display:none; margin-top:15px; font-weight:bold;">❌ Credenciales Incorrectas</p>
+        </div>
+    </div>
+
+    <div id="main-content" style="display:none;">
+        <div class="brand-container">
+            <div class="brand-name">RECONECTA2</div>
+        </div>
+
+        <div id="vista-registro" class="view active">
+            <div class="card">
+                <h3 id="form-titulo" style="margin-top:0; color:var(--reconecta-blue); font-size: 18px;">➕ Nueva Venta</h3>
+                <form id="form-registro">
+                    <input type="text" id="nombre" placeholder="Nombre del Cliente" required>
+                    <input type="tel" id="tel" placeholder="WhatsApp (Ej: 58412...)" required>
+                    <input type="text" id="serv" placeholder="Servicio (Netflix, Disney...)" required>
+                    <select id="metodo"><option>Pago Móvil</option><option>Efectivo</option><option>Binance</option><option>Zelle</option></select>
+                    <input type="number" id="ref" placeholder="Referencia (4 números)" oninput="if(this.value.length > 4) this.value = this.value.slice(0, 4);" required>
+                    <select id="status_input"><option value="Activa">Cuenta Activa 🟢</option><option value="Por Vencer">Por Vencer 🟡</option><option value="Vencida">Cuenta Vencida 🔴</option></select>
+                    
+                    <label style="font-size:12px; color:#888; margin-left:5px;">Fecha de Activación:</label>
+                    <input type="date" id="f_activacion" required onchange="calcularVencimiento(this.value)">
+                    
+                    <label style="font-size:12px; color:#888; margin-left:5px;">Fecha de Vencimiento (Autocalculado):</label>
+                    <input type="date" id="vence" required>
+
+                    <button type="submit" id="btn-enviar" class="btn-enviar">Guardar Registro</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="vista-panel" class="view">
+            <div class="resumen-container">
+                <div class="resumen-box" style="background: rgba(46, 204, 113, 0.1); border: 1px solid var(--success); color: var(--success);"><small>CUENTAS ACTIVAS</small><br><span id="res-pagados" style="font-size:20px;">0</span></div>
+                <div class="resumen-box" style="background: rgba(241, 196, 15, 0.1); border: 1px solid var(--warning); color: var(--warning);"><small>CUENTAS POR VENCER</small><br><span id="res-pendientes" style="font-size:20px;">0</span></div>
+            </div>
+            <div class="card" style="padding: 12px;"><input type="text" id="buscador" placeholder="🔍 Buscar cliente o servicio..." onkeyup="filtrar()" style="margin-bottom:0; border:none; background:transparent;"></div>
+            <div class="table-container">
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead><tr><th>Cliente / Servicio / Ref</th><th>Vence</th><th>Estado / Semáforo</th><th>Acción</th></tr></thead>
+                        <tbody id="cuerpo-tabla"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-bar" id="bottom-nav">
+            <div class="nav-item active" onclick="cambiarVista('vista-registro', this)">➕ Registro</div>
+            <div class="nav-item" onclick="cambiarVista('vista-panel', this)">📊 Panel</div>
+            <div class="nav-item" onclick="salir()">🔒 Salir</div>
+        </div>
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycby23VbC4lRJPO1hS1TT8xmsDiUVgWS1966I6HoIirPLgHhUr02hXNGER46FLwm3JCM8Mw/exec";
+        
+        const USUARIO_PRO = "admin";
+        const CLAVE_PRO = "1234";
+        let DATOS_LOCALES = [];
+
+        function validarAcceso() {
+            if(document.getElementById('user').value === USUARIO_PRO && document.getElementById('pass').value === CLAVE_PRO) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('bottom-nav').style.display = 'flex';
+                localStorage.setItem('reconecta_auth', 'true');
+                cargar();
+            } else {
+                document.getElementById('error-login').style.display = 'block';
+            }
+        }
+
+        if(localStorage.getItem('reconecta_auth') === 'true') {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('bottom-nav').style.display = 'flex';
+            cargar();
+        }
+
+        function salir() {
+            if(confirm("¿Deseas cerrar sesión en RECONECTA2?")) {
+                localStorage.removeItem('reconecta_auth');
+                location.reload();
+            }
+        }
+
+        function calcularVencimiento(fechaAct) {
+            if(!fechaAct) return;
+            let fecha = new Date(fechaAct);
+            fecha.setDate(fecha.getDate() + 29); 
+            let dia = ("0" + (fecha.getDate() + 1)).slice(-2);
+            let mes = ("0" + (fecha.getMonth() + 1)).slice(-2);
+            let anio = fecha.getFullYear();
+            document.getElementById('vence').value = `${anio}-${mes}-${dia}`;
+        }
+
+        function cambiarVista(id, el) {
+            document.querySelectorAll('.view, .nav-item').forEach(x => x.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); el.classList.add('active');
+            if(id === 'vista-panel') cargar();
+            if(id === 'vista-registro') {
+                 document.getElementById('form-titulo').innerText = "➕ Nueva Venta";
+                 document.getElementById('btn-enviar').innerText = "Guardar Registro";
+            }
+        }
+
+        function obtenerSemaforo(fechaStr) {
+            if (!fechaStr || fechaStr === "-") return { texto: "-", color: "#666" };
+            let partes = fechaStr.split("/");
+            let fVence = new Date(partes[2], partes[1] - 1, partes[0]);
+            let hoy = new Date(); hoy.setHours(0,0,0,0);
+            let dias = Math.ceil((fVence - hoy) / (1000 * 60 * 60 * 24));
+            if (dias < 0) return { texto: `Vencido`, color: "var(--danger)" };
+            if (dias <= 5) return { texto: `Faltan ${dias}d`, color: "var(--near)" };
+            return { texto: `Faltan ${dias}d`, color: "var(--success)" };
+        }
+
+        async function cargar() {
+            try {
+                const res = await fetch(URL_API);
+                DATOS_LOCALES = await res.json();
+                const tabla = document.getElementById('cuerpo-tabla');
+                tabla.innerHTML = "";
+                let activas = 0, porVencer = 0;
+
+                DATOS_LOCALES.forEach((d, index) => {
+                    const st = d.Status || "Activa";
+                    if(st === "Activa" || st === "Pagado") activas++; 
+                    if(st === "Por Vencer") porVencer++;
+                    
+                    let numLimpio = String(d.Telefono || "").replace(/\D/g,'');
+                    if (numLimpio.length === 10 && numLimpio.startsWith('4')) numLimpio = '58' + numLimpio;
+
+                    let vence = d["Fecha De Vencimiento"] || "-";
+                    if (vence.includes("T")) { let f = vence.split("T")[0].split("-"); vence = `${f[2]}/${f[1]}/${f[0]}`; }
+                    
+                    const sem = obtenerSemaforo(vence);
+                    const msgBase = `Hola *${d.Clientes}*, te saludamos de *Reconecta2* ⚡. Tu servicio de *${d.Servicios}* vence pronto.`;
+                    
+                    tabla.innerHTML += `
+                        <tr>
+                            <td>
+                                <b style="color:white">${d.Clientes}</b><br>
+                                <small style="color:#777">${d.Servicios}</small><br>
+                                <small style="color:var(--reconecta-blue)">Ref: ${d.Referencias || 'N/A'}</small>
+                            </td>
+                            <td style="color:#bbb">${vence}</td>
+                            <td>
+                                <span class="status-dot" style="background:${sem.color}"></span>
+                                <span style="color:${sem.color}; font-weight:bold; font-size:12px;">${sem.texto}</span>
+                                <span class="badge-status">${st}</span>
+                            </td>
+                            <td><div style="display:flex; gap:6px;">
+                                <a href="https://api.whatsapp.com/send?phone=${numLimpio}&text=${encodeURIComponent(msgBase)}" class="btn-ws" target="_blank">📲</a>
+                                <button class="btn-ren" onclick="preRenovar('${d.Clientes}','${numLimpio}','${d.Servicios}','${index + 2}')">🔄</button>
+                                <button class="btn-del" onclick="eliminarFila(${index})">🗑️</button>
+                            </div></td>
+                        </tr>`;
+                });
+                document.getElementById('res-pagados').innerText = activas;
+                document.getElementById('res-pendientes').innerText = porVencer;
+            } catch (e) { console.error(e); }
+        }
+
+        function preRenovar(nombre, tel, serv, fila) {
+            if(!confirm("¿Renovar este cliente?")) return;
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('tel').value = tel;
+            document.getElementById('serv').value = serv;
+            document.getElementById('ref').value = "";
+            document.getElementById('form-titulo').innerText = "🔄 Renovando Cliente";
+            document.getElementById('btn-enviar').innerText = "Confirmar Renovación";
+            fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", row: fila }) });
+            cambiarVista('vista-registro', document.querySelector('.nav-item'));
+        }
+
+        async function eliminarFila(index) {
+            if(!confirm("¿Eliminar registro?")) return;
+            await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "DELETE", row: index + 2 }) });
+            cargar();
+        }
+
+        document.getElementById('form-registro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const refInput = document.getElementById('ref').value;
+
+            // VALIDACIÓN DE REFERENCIA DUPLICADA
+            const duplicado = DATOS_LOCALES.find(d => String(d.Referencias) === String(refInput));
+            if(duplicado) {
+                alert("⚠️ Error: La referencia " + refInput + " ya existe en el sistema. Ingrese una diferente.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-enviar');
+            btn.innerText = "PROCESANDO..."; btn.disabled = true;
+            
+            const [y, m, d] = document.getElementById('vence').value.split('-');
+            const reg = {
+                action: "INSERT",
+                fecha: new Date().toLocaleDateString('es-ES'),
+                cliente: document.getElementById('nombre').value,
+                telefono: document.getElementById('tel').value,
+                servicio: document.getElementById('serv').value,
+                pago: document.getElementById('metodo').value,
+                referencia: refInput,
+                status: document.getElementById('status_input').value,
+                vencimiento: `${d}/${m}/${y}`
+            };
+            
+            await fetch(URL_API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(reg) });
+            alert("✅ GUARDADO EXITOSAMENTE");
+            document.getElementById('form-registro').reset();
+            btn.innerText = "Guardar Registro"; btn.disabled = false;
+            cambiarVista('vista-panel', document.querySelectorAll('.nav-item')[1]);
+        });
+
+        function filtrar() {
+            let bus = document.getElementById('buscador').value.toLowerCase();
+            let filas = document.querySelectorAll('#cuerpo-tabla tr');
+            filas.forEach(f => f.style.display = f.innerText.toLowerCase().includes(bus) ? "" : "none");
+        }
+    </script>
+</body>
+</html>
